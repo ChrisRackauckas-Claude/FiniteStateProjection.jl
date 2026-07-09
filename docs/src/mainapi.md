@@ -23,9 +23,10 @@ DiffEqBase.ODEProblem(::FSPSystem, u0, tmax, p)
 
 ## Steady-State Problems
 
-Computing steady-state distributions can be done using the SteadyStateDiffEq.jl package. At the moment FiniteStateProjection.jl adjusts the rate matrix so that reactions leaving the truncated state space have propensity 0.
+Computing steady-state distributions can be done using the SteadyStateDiffEq.jl package. At the moment FiniteStateProjection.jl adjusts the rate matrix so that reactions leaving the truncated state space have propensity 0. Pass a [`SteadyState`](@ref) instance to the conversion methods to request this steady-state formulation.
 
 ```@docs
+SteadyState
 Base.convert(::Type{ODEFunction}, ::FSPSystem, ::SteadyState)
 DiffEqBase.SteadyStateProblem(::FSPSystem, u0, p)
 ```

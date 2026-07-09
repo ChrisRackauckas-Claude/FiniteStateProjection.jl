@@ -1,3 +1,18 @@
+"""
+    struct SteadyState end
+
+Marker type used to select the steady-state formulation of the Chemical
+Master Equation. Passing a `SteadyState()` instance to the conversion and
+matrix-building methods requests the right-hand side in which transitions
+out of the truncated state space are dropped (their propensity is set to
+zero), as required for solving for the stationary distribution rather than
+the time-dependent one.
+
+It is used as a dispatch tag by
+[`Base.convert(::Type{ODEFunction}, ::FSPSystem, ::SteadyState)`](@ref),
+[`SparseArrays.SparseMatrixCSC(::FSPSystem, ::NTuple, ps, ::SteadyState)`](@ref)
+and [`DiffEqBase.SteadyStateProblem(::FSPSystem, u0, p)`](@ref).
+"""
 struct SteadyState end
 
 """
