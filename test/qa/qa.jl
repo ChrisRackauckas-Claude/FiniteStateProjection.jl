@@ -1,6 +1,17 @@
 using SciMLTesting, FiniteStateProjection, Test
 using JET
 
+const CATALYST_REEXPORTS = Tuple(intersect(names(FiniteStateProjection), names(FiniteStateProjection.Catalyst)))
+const API_DOCS_IGNORE = Tuple(
+    unique(
+        (
+            :SymbolicUtils,
+            :NaiveIndexHandler,
+            CATALYST_REEXPORTS...,
+        )
+    )
+)
+
 run_qa(
     FiniteStateProjection;
     explicit_imports = true,
@@ -31,7 +42,6 @@ run_qa(
             ignore = (
                 :_symbol_to_var,   # Catalyst (non-public)
                 :get_systems,      # Catalyst (owner ModelingToolkit; still non-public)
-                :symmap_to_varmap, # Catalyst (non-public)
                 :alias_gensyms,    # MacroTools (non-public)
                 :flatten,          # MacroTools (non-public)
                 :prewalk,          # MacroTools (non-public)
@@ -39,27 +49,15 @@ run_qa(
                 :striplines,       # MacroTools (non-public)
                 :scalarize,        # ModelingToolkit (owner Symbolics; still non-public)
                 :value,            # ModelingToolkit (owner Symbolics; still non-public)
-                :varmap_to_vars,   # ModelingToolkit (non-public)
                 :NullParameters,   # SciMLBase (public in 3.30+, but Catalyst 15 pins 2.153.1 where it is not)
             ),
         ),
     ),
     api_docs_kwargs = (;
-        ignore = (
-            :SymbolicUtils,
-            # Re-exported symbolic/Catalyst names that are not documented by
-            # FiniteStateProjection itself.
-            Symbol("@brownian"), Symbol("@mtkbuild"), Symbol("@species"),
-            Symbol("@symbolic_wrap"), Symbol("@transport_reaction"), Symbol("@wrapped"),
-            :AbstractCollocation, :CartesianGrid, :DiscreteSystem, :DynamicOptSolution,
-            :ImplicitDiscreteSystem, :NaiveIndexHandler, :ODESystem, :RuleSet,
-            :TransportReaction, :default_t, :default_time_deriv, :get_canonical_expr,
-            :hc_steady_states, :independent_variable, :infimum, :irreducibles,
-            :is_derivative, :iscall, :istree, :make_si_ode, :maybe_zeros,
-            :plot_complexes, :plot_network, :setnominal, :solve_for,
-            :stronglinkageclasses, :structural_simplify, :supremum,
-            :terminallinkageclasses,
-        ),
+        # `@reexport using Catalyst` intentionally exposes Catalyst's symbolic
+        # stack. Require docstrings for FiniteStateProjection-owned public API
+        # here, and leave dependency API docs to their owner packages.
+        ignore = API_DOCS_IGNORE,
     ),
     # Heavy `@reexport using Catalyst` plus the symbolic stack make ~23 names
     # implicit; making them all explicit is a risky mass refactor. Tracked in #60.

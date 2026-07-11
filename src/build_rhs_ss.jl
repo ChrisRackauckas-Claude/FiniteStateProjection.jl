@@ -82,7 +82,7 @@ Return an `ODEFunction` defining the right-hand side of the CME, for use
 with `SteadyStateProblem`s.
 """
 function Base.convert(::Type{ODEFunction}, sys::FSPSystem, ::SteadyState)
-    return ODEFunction{true}(build_rhs_ss(sys))
+    return ODEFunction{true, SciMLBase.FullSpecialize}(build_rhs_ss(sys))
 end
 
 """

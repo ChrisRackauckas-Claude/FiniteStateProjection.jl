@@ -65,8 +65,11 @@ function compile_ratefunc(ex_rf, params)
     return @RuntimeGeneratedFunction(ex)
 end
 
+_parameter_symbol(key::Symbol) = key
+_parameter_symbol(key) = Symbol(ModelingToolkit.value(key))
+
 function pmap_to_p(sys::FSPSystem, pmap)
-    pmap_conv = eltype(pmap) <: Pair{Symbol} ? Catalyst.symmap_to_varmap(sys.rs, pmap) :
-        pmap
-    return ModelingToolkit.varmap_to_vars(pmap_conv, Catalyst.parameters(sys.rs))
+    pmap isa SciMLBase.NullParameters && return pmap
+    values_by_parameter = Dict(_parameter_symbol(k) => v for (k, v) in pmap)
+    return [values_by_parameter[p] for p in Symbol.(Catalyst.parameters(sys.rs))]
 end
