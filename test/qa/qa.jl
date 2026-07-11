@@ -24,17 +24,14 @@ run_qa(
                 :value,        # owner Symbolics, accessed via ModelingToolkit
             ),
         ),
-        # `Catalyst = "15"` pins the SciMLBase 2.x / ModelingToolkit 9.x / Symbolics 6.x
-        # ecosystem, so the public-API releases (SciMLBase 3.27 / MTK 11 / Symbolics 7)
-        # are NOT resolvable here. Verified on Julia 1.12 against the resolved stack
-        # (Catalyst 15.0.11, ModelingToolkit 9.84.0, Symbolics 6.58.0, SciMLBase 2.153.1):
-        # each of these names is still non-public in its owner at the resolvable version,
-        # and MacroTools/Catalyst have not declared theirs public. Drop each as its owner
-        # ships a public declaration that FiniteStateProjection can actually resolve.
+        # These names are still non-public in their resolvable owners, or are
+        # re-exported from a non-owner. Drop each ignore as its owner ships a public
+        # declaration that FiniteStateProjection can actually resolve.
         all_qualified_accesses_are_public = (;
             ignore = (
                 :_symbol_to_var,   # Catalyst (non-public)
                 :get_systems,      # Catalyst (owner ModelingToolkit; still non-public)
+                :symmap_to_varmap, # Catalyst (non-public)
                 :alias_gensyms,    # MacroTools (non-public)
                 :flatten,          # MacroTools (non-public)
                 :prewalk,          # MacroTools (non-public)
@@ -45,6 +42,23 @@ run_qa(
                 :varmap_to_vars,   # ModelingToolkit (non-public)
                 :NullParameters,   # SciMLBase (public in 3.30+, but Catalyst 15 pins 2.153.1 where it is not)
             ),
+        ),
+    ),
+    api_docs_kwargs = (;
+        ignore = (
+            :SymbolicUtils,
+            # Re-exported symbolic/Catalyst names that are not documented by
+            # FiniteStateProjection itself.
+            Symbol("@brownian"), Symbol("@mtkbuild"), Symbol("@species"),
+            Symbol("@symbolic_wrap"), Symbol("@transport_reaction"), Symbol("@wrapped"),
+            :AbstractCollocation, :CartesianGrid, :DiscreteSystem, :DynamicOptSolution,
+            :ImplicitDiscreteSystem, :NaiveIndexHandler, :ODESystem, :RuleSet,
+            :TransportReaction, :default_t, :default_time_deriv, :get_canonical_expr,
+            :hc_steady_states, :independent_variable, :infimum, :irreducibles,
+            :is_derivative, :iscall, :istree, :make_si_ode, :maybe_zeros,
+            :plot_complexes, :plot_network, :setnominal, :solve_for,
+            :stronglinkageclasses, :structural_simplify, :supremum,
+            :terminallinkageclasses,
         ),
     ),
     # Heavy `@reexport using Catalyst` plus the symbolic stack make ~23 names
