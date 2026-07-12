@@ -4,6 +4,7 @@ using Reexport
 @reexport using Catalyst
 
 using MacroTools
+import ModelingToolkit
 using SparseArrays
 using DiffEqBase
 

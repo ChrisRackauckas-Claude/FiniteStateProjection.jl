@@ -131,7 +131,7 @@ the work in the package happens; for best performance it is suggested to build a
 once for a given reaction system and reuse it instead of directly converting
 a reaction system to an `ODEProblem` (which implicitly calls this function).
 """
-Base.convert(::Type{ODEFunction}, sys::FSPSystem) = ODEFunction{true}(build_rhs(sys))
+Base.convert(::Type{ODEFunction}, sys::FSPSystem) = ODEFunction{true, SciMLBase.FullSpecialize}(build_rhs(sys))
 
 """
     DiffEqBase.ODEProblem(sys::FSPSystem, u0, tmax[, p])

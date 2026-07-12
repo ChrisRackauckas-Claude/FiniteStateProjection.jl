@@ -1,6 +1,17 @@
 using SciMLTesting, FiniteStateProjection, Test
 using JET
 
+const CATALYST_REEXPORTS = Tuple(intersect(names(FiniteStateProjection), names(FiniteStateProjection.Catalyst)))
+const API_DOCS_IGNORE = Tuple(
+    unique(
+        (
+            :SymbolicUtils,
+            :NaiveIndexHandler,
+            CATALYST_REEXPORTS...,
+        )
+    )
+)
+
 run_qa(
     FiniteStateProjection;
     explicit_imports = true,
@@ -24,13 +35,9 @@ run_qa(
                 :value,        # owner Symbolics, accessed via ModelingToolkit
             ),
         ),
-        # `Catalyst = "15"` pins the SciMLBase 2.x / ModelingToolkit 9.x / Symbolics 6.x
-        # ecosystem, so the public-API releases (SciMLBase 3.27 / MTK 11 / Symbolics 7)
-        # are NOT resolvable here. Verified on Julia 1.12 against the resolved stack
-        # (Catalyst 15.0.11, ModelingToolkit 9.84.0, Symbolics 6.58.0, SciMLBase 2.153.1):
-        # each of these names is still non-public in its owner at the resolvable version,
-        # and MacroTools/Catalyst have not declared theirs public. Drop each as its owner
-        # ships a public declaration that FiniteStateProjection can actually resolve.
+        # These names are still non-public in their resolvable owners, or are
+        # re-exported from a non-owner. Drop each ignore as its owner ships a public
+        # declaration that FiniteStateProjection can actually resolve.
         all_qualified_accesses_are_public = (;
             ignore = (
                 :_symbol_to_var,   # Catalyst (non-public)
@@ -42,10 +49,15 @@ run_qa(
                 :striplines,       # MacroTools (non-public)
                 :scalarize,        # ModelingToolkit (owner Symbolics; still non-public)
                 :value,            # ModelingToolkit (owner Symbolics; still non-public)
-                :varmap_to_vars,   # ModelingToolkit (non-public)
                 :NullParameters,   # SciMLBase (public in 3.30+, but Catalyst 15 pins 2.153.1 where it is not)
             ),
         ),
+    ),
+    api_docs_kwargs = (;
+        # `@reexport using Catalyst` intentionally exposes Catalyst's symbolic
+        # stack. Require docstrings for FiniteStateProjection-owned public API
+        # here, and leave dependency API docs to their owner packages.
+        ignore = API_DOCS_IGNORE,
     ),
     # Heavy `@reexport using Catalyst` plus the symbolic stack make ~23 names
     # implicit; making them all explicit is a risky mass refactor. Tracked in #60.
