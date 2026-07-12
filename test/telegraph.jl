@@ -6,8 +6,10 @@ using FiniteStateProjection
 using SparseArrays
 using LinearAlgebra
 using Sundials
+using Random
 
 marg(vec; dims) = dropdims(sum(vec; dims); dims)
+Random.seed!(100)
 
 rs = @reaction_network begin
     σ_on * (1 - G), 0 --> G
