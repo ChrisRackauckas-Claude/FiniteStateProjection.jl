@@ -22,9 +22,6 @@ run_qa(
         :unbound_args,       # pairedindices unbound type params (indexhandlers.jl 97/116)
         :undefined_exports,  # @reexport using Catalyst re-exports names absent from loaded deps
     ),
-    # JET reports 3 issues (NaiveIndexHandler @deprecate kwcall; NullParameters used
-    # but not imported in build_rhs.jl/build_rhs_ss.jl). Tracked in #60.
-    jet_broken = true,
     ei_kwargs = (;
         # Names re-exported by a non-owner dependency (resolve to the owner as base
         # libraries adopt public/owner declarations).
