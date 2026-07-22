@@ -18,6 +18,7 @@ More information is available in the [documentation](https://kaandocal.github.io
 
 ```julia
 using FiniteStateProjection
+using Catalyst
 using OrdinaryDiffEq
 
 rn = @reaction_network begin
@@ -45,6 +46,7 @@ sol = solve(prob, Vern7())
 
 ```julia
 using FiniteStateProjection
+using Catalyst
 using OrdinaryDiffEq
 
 rn = @reaction_network begin

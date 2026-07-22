@@ -50,22 +50,22 @@ function LinearIndices end
 ##
 
 """
-    struct DefaultIndexHandler{N} <: AbstractIndexHandler
-        offset::Int
-        perm::NTuple{N,Int}
-    end
+    DefaultIndexHandler{N}()
+    DefaultIndexHandler{N}(offset, perm)
 
-Basic index handler that stores the state of a system with
-`s` species in an `s`-dimensional array. The `offset` parameter
-denotes the offset by which the array is indexed (defaults to 1
-in Julia). The order of the species is given by the tuple `perm`.
+Default index handler for an FSP system with `N` species. It represents the state
+as an `N`-dimensional array, maps a molecule count of zero to `offset`, and uses
+`perm` to map state-array dimensions to Catalyst's species order.
 
-This is the simplest index handler, but it will not be optimal
-if some states cannot be reached from the initial state, e.g.
-due to the presence of conservation laws. In these cases one should
-use try to remove redundant species where possible.
+The zero-argument constructor uses Julia's one-based indexing and preserves the
+species order. This representation is appropriate when every state in the truncated
+array is reachable; reduce conserved species before construction when possible.
 
-Constructors: `DefaultIndexHandler([sys::FSPSystem, offset::Int=1])`
+# Examples
+```julia
+julia > DefaultIndexHandler{2}()
+DefaultIndexHandler{2}(1, (1, 2))
+```
 """
 struct DefaultIndexHandler{N} <: AbstractIndexHandler
     offset::Int
@@ -74,7 +74,19 @@ end
 
 DefaultIndexHandler{N}() where {N} = DefaultIndexHandler{N}(1, Tuple(1:N))
 
-@deprecate NaiveIndexHandler DefaultIndexHandler true
+"""
+    NaiveIndexHandler
+
+Deprecated alias for [`DefaultIndexHandler`](@ref). Use `DefaultIndexHandler` instead.
+"""
+function NaiveIndexHandler(args...; kwargs...)
+    Base.depwarn(
+        "`NaiveIndexHandler` is deprecated, use `DefaultIndexHandler` instead.",
+        :NaiveIndexHandler
+    )
+    return DefaultIndexHandler(args...; kwargs...)
+end
+export NaiveIndexHandler
 
 Base.vec(::DefaultIndexHandler, arr) = vec(arr)
 Base.LinearIndices(::DefaultIndexHandler, arr) = LinearIndices(arr)
@@ -139,7 +151,7 @@ Defines the abundance of species ``S_i`` to be `state_sym[i] - offset`.
 """
 function getsubstitutions(ih::DefaultIndexHandler, rs::ReactionSystem; state_sym::Symbol)
     nspecs = numspecies(rs)
-    state_sym_vec = ModelingToolkit.value.(ModelingToolkit.scalarize((@variables ($state_sym)[1:nspecs])[1]))
+    state_sym_vec = value.(scalarize((@variables ($state_sym)[1:nspecs])[1]))
 
     species_orig = species(rs)
     species_perm = [species_orig[ih.perm[i]] for i in 1:nspecs]
@@ -154,11 +166,17 @@ end
 #defined by the vector `order`.
 #"""
 function PermutingIndexHandler(rs::ReactionSystem, order::AbstractVector{Symbol})
-    return PermutingIndexHandler(rs, map(sym -> Catalyst._symbol_to_var(rs, sym), order))
+    system_species = species(rs)
+    resolved_order = map(order) do sym
+        index = findfirst(species -> getname(species) == sym, system_species)
+        isnothing(index) && error("Cannot find species $sym in reaction system")
+        system_species[index]
+    end
+    return PermutingIndexHandler(rs, resolved_order)
 end
 
 function PermutingIndexHandler(rs::ReactionSystem, order::AbstractVector)
-    spec = Catalyst.species(rs)
+    spec = species(rs)
     nspec = length(spec)
 
     if nspec != length(order)

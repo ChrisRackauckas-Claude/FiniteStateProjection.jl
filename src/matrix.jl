@@ -6,7 +6,7 @@ function create_sparsematrix(sys::FSPSystem, dims::NTuple, ps, t)
     J = Int[]
     V = Float64[]
 
-    predsize = Ntot * (length(Catalyst.equations(sys.rs)) + 1)
+    predsize = Ntot * (length(equations(sys.rs)) + 1)
 
     sizehint!(I, predsize)
     sizehint!(J, predsize)
@@ -49,7 +49,7 @@ function create_sparsematrix_ss(sys::FSPSystem, dims::NTuple, ps)
     J = Int[]
     V = Float64[]
 
-    predsize = 2 * Ntot * length(Catalyst.equations(sys.rs))
+    predsize = 2 * Ntot * length(equations(sys.rs))
 
     sizehint!(I, predsize)
     sizehint!(J, predsize)

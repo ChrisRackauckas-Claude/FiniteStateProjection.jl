@@ -9,7 +9,7 @@ the variable `psym` represents an `AbstractVector`.
 See also: [`build_rhs_header`](@ref), [`build_rhs`](@ref)
 """
 function unpackparams(sys::FSPSystem, psym::Symbol)
-    param_names = Expr(:tuple, map(par -> par.name, Catalyst.parameters(sys.rs))...)
+    param_names = Expr(:tuple, map(par -> par.name, parameters(sys.rs))...)
 
     return quote
         $(param_names) = $(psym)
@@ -102,9 +102,9 @@ function build_rhs_ex(sys::FSPSystem; striplines::Bool = false)
 
     ex = :((du, u, p, t) -> $(body))
 
-    striplines && (ex = MacroTools.striplines(ex))
+    striplines && (ex = _striplines(ex))
 
-    ex = ex |> MacroTools.flatten |> _prettify
+    ex = _prettify(_flatten(ex))
 
     return ex
 end
@@ -134,7 +134,7 @@ a reaction system to an `ODEProblem` (which implicitly calls this function).
 Base.convert(::Type{ODEFunction}, sys::FSPSystem) = ODEFunction{true, SciMLBase.FullSpecialize}(build_rhs(sys))
 
 """
-    DiffEqBase.ODEProblem(sys::FSPSystem, u0, tmax[, p])
+    SciMLBase.ODEProblem(sys::FSPSystem, u0, tmax[, p])
 
 Return an `ODEProblem` for use in `DifferentialEquations`. This function implicitly
 calls `convert(ODEFunction, sys)`. It is usually more efficient to create an `ODEFunction`

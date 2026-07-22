@@ -39,6 +39,8 @@ The above does not work directly when computing steady-state probabilities as th
 This point might seem obvious, but errors in the rate functions, or an incorrectly chosen truncation, can lead to negative reaction propensities that will typically result in numerical instabilities. As an example, consider the following version of the SI model where the population size ``S + I = N`` is constant, allowing us to rewrite the system using only one species ``I`` (with ``S = N - I``):
 
 ```julia
+using Catalyst
+
 rn = @reaction_network begin
     σ * (N - I), I --> 2I
     ρ, I --> 0

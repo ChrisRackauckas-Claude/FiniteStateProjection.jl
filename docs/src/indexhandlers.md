@@ -6,4 +6,5 @@ See the [internal API](@ref index_handlers_internal) on how to define your own `
 
 ```@docs
 DefaultIndexHandler
+NaiveIndexHandler
 ```

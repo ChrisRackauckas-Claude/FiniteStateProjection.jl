@@ -11,7 +11,13 @@ the time-dependent one.
 It is used as a dispatch tag by
 [`Base.convert(::Type{ODEFunction}, ::FSPSystem, ::SteadyState)`](@ref),
 [`SparseArrays.SparseMatrixCSC(::FSPSystem, ::NTuple, ps, ::SteadyState)`](@ref)
-and [`DiffEqBase.SteadyStateProblem(::FSPSystem, u0, p)`](@ref).
+and [`SciMLBase.SteadyStateProblem(::FSPSystem, u0, p)`](@ref).
+
+# Examples
+```julia
+julia > SteadyState()
+SteadyState()
+```
 """
 struct SteadyState end
 
@@ -56,9 +62,9 @@ function build_rhs_ex_ss(sys::FSPSystem; striplines::Bool = false)
 
     ex = :((du, u, p, t) -> $(body))
 
-    striplines && (ex = MacroTools.striplines(ex))
+    striplines && (ex = _striplines(ex))
 
-    ex = ex |> MacroTools.flatten |> _prettify
+    ex = _prettify(_flatten(ex))
 
     return ex
 end
@@ -86,7 +92,7 @@ function Base.convert(::Type{ODEFunction}, sys::FSPSystem, ::SteadyState)
 end
 
 """
-    DiffEqBase.SteadyStateProblem(sys::FSPSystem, u0[, p])
+    SciMLBase.SteadyStateProblem(sys::FSPSystem, u0[, p])
 
 Return a `SteadyStateProblem` for use in `DifferentialEquations.
 """
