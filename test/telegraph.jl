@@ -3,6 +3,7 @@ using OrdinaryDiffEq
 using SteadyStateDiffEq
 using Distributions
 using FiniteStateProjection
+using Catalyst
 using SparseArrays
 using LinearAlgebra
 using Sundials

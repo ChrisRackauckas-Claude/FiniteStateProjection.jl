@@ -1,7 +1,26 @@
 """
-Thin wrapper around `Catalyst.ReactionSystem` for use with this package.
+    FSPSystem(rs::Catalyst.ReactionSystem, [ih]; combinatoric_ratelaw = true)
 
-Constructor: `FSPSystem(rs::ReactionSystem[, ih=DefaultIndexHandler(); combinatoric_ratelaw::Bool=true])`
+Represent a Catalyst reaction system as a finite state projection (FSP) system.
+`FSPSystem` stores the reaction system, an index handler describing the state-array
+layout, and generated rate functions used to construct ODE and steady-state problems.
+
+# Arguments
+- `rs`: Catalyst reaction system without subsystems.
+- `ih`: Index handler for the FSP state array. By default,
+  `DefaultIndexHandler` uses Catalyst's species order.
+- `combinatoric_ratelaw`: Whether to use combinatoric jump rate laws.
+
+# Examples
+```julia
+using Catalyst
+
+rn = @reaction_network begin
+    birth, 0 --> A
+    death, A --> 0
+end
+fsp = FSPSystem(rn)
+```
 """
 struct FSPSystem{IHT <: AbstractIndexHandler, RT}
     rs::ReactionSystem
@@ -11,11 +30,11 @@ end
 
 function FSPSystem(
         rs::ReactionSystem,
-        ih::AbstractIndexHandler = DefaultIndexHandler{length(Catalyst.species(rs))}();
+        ih::AbstractIndexHandler = DefaultIndexHandler{length(species(rs))}();
         combinatoric_ratelaw::Bool = true
     )
-    isempty(Catalyst.get_systems(rs)) ||
-        error("Supported Catalyst models can not contain subsystems. Please use `rs = Catalyst.flatten(rs::ReactionSystem)` to generate a single system with no subsystems from your Catalyst model.")
+    isempty(get_systems(rs)) ||
+        error("Supported Catalyst models can not contain subsystems. Use `ModelingToolkitBase.flatten(rs)` to generate a single system with no subsystems from your Catalyst model.")
     any(eq -> !(eq isa Reaction), equations(rs)) &&
         error("Catalyst models that include constraint ODEs or algebraic equations are not supported.")
 
@@ -41,7 +60,7 @@ function build_ratefuncs(
     )
     substitutions = getsubstitutions(ih, rs, state_sym = state_sym)
 
-    return map(Catalyst.reactions(rs)) do reac
+    return map(reactions(rs)) do reac
         jrl = jumpratelaw(reac; combinatoric_ratelaw)
         jrl_s = substitute(jrl, substitutions)
         toexpr(jrl_s)
@@ -49,7 +68,7 @@ function build_ratefuncs(
 end
 
 function create_ratefuncs(rs::ReactionSystem, ih::AbstractIndexHandler; combinatoric_ratelaw::Bool = true)
-    paramsyms = Symbol.(Catalyst.parameters(rs))
+    paramsyms = Symbol.(parameters(rs))
 
     return tuple(
         map(
@@ -60,16 +79,15 @@ function create_ratefuncs(rs::ReactionSystem, ih::AbstractIndexHandler; combinat
 end
 
 function compile_ratefunc(ex_rf, params)
-    # Make this nicer in the future
-    ex = :((idx_in, t, $(params...)) -> $(ex_rf)) |> MacroTools.flatten
+    ex = _flatten(:((idx_in, t, $(params...)) -> $(ex_rf)))
     return @RuntimeGeneratedFunction(ex)
 end
 
 _parameter_symbol(key::Symbol) = key
-_parameter_symbol(key) = Symbol(ModelingToolkit.value(key))
+_parameter_symbol(key) = Symbol(value(key))
 
 function pmap_to_p(sys::FSPSystem, pmap)
     pmap isa SciMLBase.NullParameters && return pmap
     values_by_parameter = Dict(_parameter_symbol(k) => v for (k, v) in pmap)
-    return [values_by_parameter[p] for p in Symbol.(Catalyst.parameters(sys.rs))]
+    return [values_by_parameter[p] for p in Symbol.(parameters(sys.rs))]
 end

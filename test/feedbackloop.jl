@@ -4,6 +4,7 @@ using Test
 using OrdinaryDiffEq
 using SteadyStateDiffEq
 using FiniteStateProjection
+using Catalyst
 using SparseArrays
 using LinearAlgebra
 

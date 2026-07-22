@@ -17,8 +17,8 @@ FSPSystem
 The following methods convert a reaction network into a system of ODEs representing the time-dependent FSP. This package provides a flexible way to represent the FSP in memory via index handlers, see [Index Handlers] for more information.
 
 ```@docs
-Base.convert(::Type{ODEFunction}, ::FSPSystem)
-DiffEqBase.ODEProblem(::FSPSystem, u0, tmax, p)
+Base.convert(::Type{SciMLBase.ODEFunction}, ::FSPSystem)
+SciMLBase.ODEProblem(::FSPSystem, u0, tmax, p)
 ```
 
 ## Steady-State Problems
@@ -28,5 +28,5 @@ Computing steady-state distributions can be done using the SteadyStateDiffEq.jl 
 ```@docs
 SteadyState
 Base.convert(::Type{ODEFunction}, ::FSPSystem, ::SteadyState)
-DiffEqBase.SteadyStateProblem(::FSPSystem, u0, p)
+SciMLBase.SteadyStateProblem(::FSPSystem, u0, p)
 ```

@@ -6,6 +6,7 @@ This example models a linear birth-death process. The reaction network is easily
 
 ```julia
 using FiniteStateProjection
+using Catalyst
 using OrdinaryDiffEq
 
 rn = @reaction_network begin
@@ -41,6 +42,7 @@ The most straightforward description of this system includes three species: two 
 
 ```julia
 using FiniteStateProjection
+using Catalyst
 using OrdinaryDiffEq
 
 rn = @reaction_network begin
